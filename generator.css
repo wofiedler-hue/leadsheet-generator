@@ -1051,9 +1051,16 @@ body.is-printing #print-container {
     padding: 0.2em 0.4em;
   }
 
-  .print-page .volta-line,
+  .print-page .volta-line {
+    border-top: 2px solid black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .print-page .volta-hook {
-    border-color: black !important;
+    border-left: 2px solid black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-page .volta-text {
