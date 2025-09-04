@@ -1001,8 +1001,9 @@ const handlePrint = () => {
 
     const originalTitle = document.title;
     const sheetTitle = state.sheetData.title;
-    // Only change the title if it's meaningful
-    if (sheetTitle && sheetTitle.trim() && sheetTitle !== 'Titel hier klicken') {
+    
+    // Set the document title to the sheet's title to suggest it as the PDF filename.
+    if (sheetTitle && sheetTitle.trim()) {
         document.title = sheetTitle.trim();
     }
 
