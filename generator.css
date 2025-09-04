@@ -944,21 +944,23 @@ body.is-printing #print-container {
   }
 
   /* == PRINT OVERLAP FIX START == */
-  /* Explicitly define stacking order for print to prevent volta brackets from covering line text. */
+  /* Ensure proper spacing and stacking for print to prevent volta brackets and line text from overlapping. */
   .print-page .line-text-container {
       background-color: transparent !important;
       position: relative; /* Ensure stacking context */
-      z-index: 10;      /* Keep text on top */
+      z-index: 10;      /* Keep text on top, just in case */
   }
 
   .print-page .measure-line {
-      position: relative; /* Ensure stacking context */
+      margin-top: 25px; /* Add space for any voltas or rehearsal marks above */
+      position: relative; /* Ensure stacking context for measures */
       z-index: 5;       /* Keep measures below text */
   }
   
   .print-page .volta-container {
       background-color: transparent !important;
-      margin-top: 0 !important; /* Prevents being pushed down into the text line */
+      margin-top: 0 !important; /* Keep volta positioned correctly relative to the measure line */
+      margin-bottom: 0 !important;
   }
   /* == PRINT OVERLAP FIX END == */
 
