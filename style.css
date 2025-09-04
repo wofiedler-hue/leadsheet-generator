@@ -103,13 +103,18 @@ p {
 }
 
 .main-nav a:hover,
-.main-nav a:focus {
+.main-nav a:focus,
+.main-nav a.active {
   color: var(--primary-color);
 }
 
 .main-nav a:hover::after,
 .main-nav a:focus::after {
   width: 100%;
+}
+
+.main-nav a.active::after {
+    width: 100%;
 }
 
 /* --- Hero Section --- */
@@ -205,6 +210,41 @@ p {
     margin-bottom: 0;
 }
 
+/* --- Showcase Section --- */
+.showcase-section {
+    padding: calc(6rem + var(--header-height)) 0 6rem 0;
+    background-color: var(--background-color);
+}
+
+.showcase-section h2 {
+    text-align: center;
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+}
+
+.showcase-section .showcase-intro {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 4rem auto;
+    font-size: 1.1rem;
+}
+
+.showcase-image-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.showcase-image-wrapper img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+
 /* --- Footer --- */
 .main-footer {
   background-color: var(--heading-color);
@@ -241,6 +281,8 @@ p {
 
 @media (max-width: 480px) {
     .main-nav ul {
-        gap: 1.5rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }
