@@ -938,12 +938,29 @@ body.is-printing #print-container {
   .print-page .style-info,
   .print-page .subtitle-info,
   .print-page .time-signature,
-  .print-page .line-text-container,
   .print-page .measure,
-  .print-page .bar-line-container,
-  .print-page .volta-container {
+  .print-page .bar-line-container {
       background-color: transparent !important;
   }
+
+  /* == PRINT OVERLAP FIX START == */
+  /* Explicitly define stacking order for print to prevent volta brackets from covering line text. */
+  .print-page .line-text-container {
+      background-color: transparent !important;
+      position: relative; /* Ensure stacking context */
+      z-index: 10;      /* Keep text on top */
+  }
+
+  .print-page .measure-line {
+      position: relative; /* Ensure stacking context */
+      z-index: 5;       /* Keep measures below text */
+  }
+  
+  .print-page .volta-container {
+      background-color: transparent !important;
+      margin-top: 0 !important; /* Prevents being pushed down into the text line */
+  }
+  /* == PRINT OVERLAP FIX END == */
 
   .print-page {
     width: 100%;
