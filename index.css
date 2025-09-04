@@ -222,6 +222,8 @@ body {
   padding: 2px;
   cursor: pointer;
   border-radius: 4px;
+  position: relative; /* Stacking context to be above volta brackets */
+  z-index: 7;         /* Higher than volta-container's z-index of 6 */
 }
 .line-text-display {
   font-style: italic;
