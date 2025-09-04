@@ -1,2 +1,3 @@
 # leadsheet-generator
-Erstellen Sie im Handumdrehen klare und lesbare Leadsheets für Ihre Musik. Perfekt für Musiker, Bands und Songwriter.
+Create beautiful leadsheets, effortlessly.
+A fast, intuitive, and print-optimized tool for musicians, composers, and educators.
