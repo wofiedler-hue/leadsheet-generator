@@ -1,4 +1,3 @@
-
 // --- Constants ---
 const BAR_SYMBOLS = { '|': 'single', '||': 'double', '|||': 'final', '>|': 'end', '}': 'end', '|<': 'start-repeat' };
 const SYMBOL_LOOKUP = {
@@ -30,7 +29,7 @@ const state = {
     timeSignature: '4/4',
     lines: [
       {
-        lineText: '<Line Text',
+        lineText: '<Verse',
         startBar: 'single',
         startBarVolta: '',
         measures: [
@@ -346,7 +345,7 @@ const renderSheet = () => {
             const trigger = document.createElement('button');
             trigger.className = 'volta-editor-trigger';
             trigger.textContent = 'V';
-            trigger.setAttribute('aria-label', `Volta-Startpunkt für Zeile ${lineIndex + 1} bearbeiten`);
+            trigger.setAttribute('aria-label', `Edit volta start for line ${lineIndex + 1}`);
             startVoltaEditor.appendChild(trigger);
         }
         startBarContainer.appendChild(startVoltaEditor);
@@ -368,7 +367,7 @@ const renderSheet = () => {
                 deleteBtn.textContent = '×';
                 deleteBtn.dataset.lineIndex = String(lineIndex);
                 deleteBtn.dataset.measureIndex = String(measureIndex);
-                deleteBtn.setAttribute('aria-label', `Takt ${measureIndex + 1} löschen`);
+                deleteBtn.setAttribute('aria-label', `Delete measure ${measureIndex + 1}`);
                 measureEl.appendChild(deleteBtn);
             }
 
@@ -534,7 +533,7 @@ const renderSheet = () => {
                 const trigger = document.createElement('button');
                 trigger.className = 'volta-editor-trigger';
                 trigger.textContent = 'V';
-                trigger.setAttribute('aria-label', `Volta-Punkt nach Takt ${measureIndex + 1} bearbeiten`);
+                trigger.setAttribute('aria-label', `Edit volta point after measure ${measureIndex + 1}`);
                 voltaEditor.appendChild(trigger);
             }
             barLineContainer.appendChild(voltaEditor);
@@ -548,7 +547,7 @@ const renderSheet = () => {
             addMeasureBtn.className = 'add-measure-btn';
             addMeasureBtn.textContent = '+';
             addMeasureBtn.dataset.lineIndex = String(lineIndex);
-            addMeasureBtn.setAttribute('aria-label', 'Takt hinzufügen');
+            addMeasureBtn.setAttribute('aria-label', 'Add measure');
             lineEl.appendChild(addMeasureBtn);
         }
         
@@ -558,7 +557,7 @@ const renderSheet = () => {
             deleteBtn.className = 'line-delete-btn';
             deleteBtn.textContent = '×';
             deleteBtn.dataset.lineIndex = String(lineIndex);
-            deleteBtn.setAttribute('aria-label', `Zeile ${lineIndex + 1} löschen`);
+            deleteBtn.setAttribute('aria-label', `Delete line ${lineIndex + 1}`);
             lineEl.appendChild(deleteBtn);
         }
         
@@ -982,13 +981,13 @@ const handleExportPNG = async () => {
     if (state.isExporting) return;
 
     if (typeof html2canvas === 'undefined') {
-        alert('Fehler: Die Export-Bibliothek (html2canvas) konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung.');
+        alert('Error: The export library (html2canvas) could not be loaded. Please check your internet connection.');
         return;
     }
 
     document.body.classList.add('is-exporting');
     state.isExporting = true;
-    dom.exportButton.textContent = 'Exportiere...';
+    dom.exportButton.textContent = 'Exporting...';
     dom.exportButton.disabled = true;
 
     const previousEditingState = state.editing;
@@ -1029,7 +1028,7 @@ const handleExportPNG = async () => {
 
             const link = document.createElement('a');
             const filename = pageElements.length > 1
-                ? `${baseFilename}_seite_${i + 1}.png`
+                ? `${baseFilename}_page_${i + 1}.png`
                 : `${baseFilename}.png`;
             link.download = filename;
             link.href = canvas.toDataURL('image/png');
@@ -1043,10 +1042,10 @@ const handleExportPNG = async () => {
         document.body.removeChild(renderContainer);
     } catch (error) {
         console.error('Error exporting PNG:', error);
-        alert('Fehler beim Export. Bitte versuchen Sie es erneut.');
+        alert('Error during export. Please try again.');
     } finally {
         state.isExporting = false;
-        dom.exportButton.textContent = 'Export als PNG';
+        dom.exportButton.textContent = 'Export as PNG';
         dom.exportButton.disabled = false;
         
         document.body.classList.remove('is-exporting');
@@ -1073,7 +1072,7 @@ const handlePrint = () => {
         const footer = document.createElement('div');
         footer.className = 'page-footer';
         if (totalPages > 1) {
-            footer.textContent = `Seite ${index + 1} von ${totalPages}`;
+            footer.textContent = `Page ${index + 1} of ${totalPages}`;
         }
         pageDiv.appendChild(footer);
         printContainer.appendChild(pageDiv);
@@ -1085,7 +1084,7 @@ const handlePrint = () => {
     const originalTitle = document.title;
     const sheetTitle = state.sheetData.title;
     // Only change the title if it's meaningful
-    if (sheetTitle && sheetTitle.trim() && sheetTitle !== 'Titel hier klicken') {
+    if (sheetTitle && sheetTitle.trim() && sheetTitle !== 'Click to edit title') {
         document.title = sheetTitle.trim();
     }
 

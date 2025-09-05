@@ -1,5 +1,5 @@
 {
-  "name": "Lead Sheet Creator - Website",
-  "description": "A modern website and web-based editor for creating and exporting musical lead sheets.",
+  "name": "Lead Sheet Generator",
+  "description": "An interactive lead sheet editor for musicians.",
   "requestFramePermissions": []
 }

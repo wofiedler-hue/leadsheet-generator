@@ -1,4 +1,4 @@
-/* Grundlegende Zurücksetzung & Globale Stile */
+/* Basic Reset & Global Styles */
 :root {
   --background-color: #ffffff;
   --text-color: #1c1e21;
@@ -10,7 +10,7 @@
   --ui-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --bar-line-width: 30px;
 
-  /* Farben für interaktive Flächen */
+  /* Colors for interactive areas */
   --interactive-color-header: rgba(253, 253, 150, 0.25); /* Yellow */
   --interactive-color-time: rgba(255, 204, 153, 0.25);   /* Orange */
   --interactive-color-linetext: rgba(193, 225, 193, 0.25);/* Green */
@@ -39,7 +39,7 @@ body {
   line-height: 1.6;
 }
 
-/* App-Layout */
+/* App Layout */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -54,7 +54,7 @@ body {
   justify-content: center;
 }
 
-/* Notenblatt-Panel */
+/* Sheet Panel */
 .sheet-panel {
   position: relative;
   width: 100%;
@@ -255,7 +255,7 @@ body {
   font-weight: normal;
   vertical-align: middle;
   margin: 0 0.2em;
-  /* HINZUGEFÜGT: Verhindert, dass das Symbol die Zeilenhöhe beeinflusst, um Layout-Sprünge zu vermeiden. */
+  /* ADDED: Prevents the symbol from affecting the line height to avoid layout jumps. */
   display: inline-block;
   line-height: 0;
 }
@@ -290,11 +290,11 @@ body {
   padding: 0.25rem;
 }
 
-/* FIX: Verhindert Überlappung zwischen Zeilentext- und Volta-Editoren */
+/* FIX: Prevents overlap between line text and volta editors */
 .line-text-container:has(.line-text-input) {
-    margin-bottom: 30px; /* Zusätzlicher Abstand nach unten beim Bearbeiten */
-    position: relative;    /* Stacking-Kontext herstellen */
-    z-index: 7;            /* Über dem Volta-Container (z-index: 6) platzieren */
+    margin-bottom: 30px; /* Additional bottom margin when editing */
+    position: relative;    /* Establish stacking context */
+    z-index: 7;            /* Place above volta container (z-index: 6) */
 }
 
 /* Measure & Bar Lines Layout */
@@ -557,11 +557,11 @@ body {
 }
 .beat-slash {
     font-family: 'Noto Music', sans-serif;
-    font-size: 2.8rem; /* Größe für das Wiederholungszeichen angepasst */
+    font-size: 2.8rem; /* Size adjusted for the repeat symbol */
     color: #000;
     font-weight: normal;
     position: relative;
-    top: 0.2em; /* Vertikal zentriert für das neue Symbol */
+    top: 0.2em; /* Vertically centered for the new symbol */
     line-height: 1;
 }
 .chord-display {
@@ -609,7 +609,7 @@ body {
     line-height: 0;
 }
 
-/* Taktwiederholungszeichen (Faulenzer) */
+/* Measure Repeat Symbol */
 .lazy-symbol-container {
   display: flex;
   justify-content: center;
@@ -657,7 +657,7 @@ body {
   z-index: 10;
 }
 
-/* == Hervorhebung interaktiver Flächen == */
+/* == Highlighting Interactive Areas == */
 .sheet-header h1, .style-info, .subtitle-info,
 .time-signature,
 .line-text-container,
@@ -1024,17 +1024,17 @@ body.is-printing #print-container {
     margin-bottom: 0.3rem;
   }
 
-  /* FINALER FIX: Stellt sicher, dass der Zeilentext *immer* über der Taktzeile liegt. */
+  /* FINAL FIX: Ensures line text is *always* above the measure line. */
   .print-page .line-text-container {
-    position: relative; /* Stacking-Kontext für z-index erforderlich */
+    position: relative; /* Stacking context required for z-index */
     z-index: 10;
-    /* Ein expliziter Hintergrund zwingt den Druck-Renderer, dies als undurchsichtige
-       Ebene zu behandeln, was hartnäckige z-index-Probleme im Druck löst. */
+    /* An explicit background forces the print renderer to treat this as an opaque
+       layer, which solves stubborn z-index issues in print. */
     background-color: white; 
   }
   
   .print-page .measure-line {
-    /* Muss auch einen Stacking-Kontext haben, damit der z-index-Vergleich funktioniert */
+    /* Must also have a stacking context for the z-index comparison to work */
     position: relative;
     z-index: 1;
   }
@@ -1068,8 +1068,8 @@ body.is-printing #print-container {
     font-weight: bold !important;
   }
   
-  /* NEU & ROBUST: Stellt sicher, dass unter keinen Umständen Eingabefelder
-     gedruckt werden. Dies dient als Failsafe für die JavaScript-Logik. */
+  /* NEW & ROBUST: Ensures that under no circumstances are input fields
+     printed. This acts as a failsafe for the JavaScript logic. */
   .print-page .header-input,
   .print-page .time-signature-input,
   .print-page .line-text-input,

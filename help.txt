@@ -1,0 +1,58 @@
+HELP & INSTRUCTIONS
+===================
+
+## General Usage
+
+All elements on the sheet can be clicked directly to edit them. Clicking outside an element saves the change.
+
+## Header (Title, etc.)
+
+Click on "Title", "Subtitle", or "Style" to change the text. While editing, a toolbar will appear at the top, allowing you to adjust the font family and font size.
+
+## Time Signature
+
+Click the time signature (e.g., `4/4`) at the beginning of the sheet to change it. The number of input fields per measure will automatically adjust to the new time signature (e.g., `3/4` will show 3 fields).
+
+## Editing Structure
+
+- **Add New Line:** Click the "Add New Line" button at the bottom left.
+- **Delete Line:** Click the large "×" at the end of a line. This button only appears if there is more than one line.
+- **Add Measure:** If a line has fewer than four measures, a `+` button will appear at the end of the line to add a new measure.
+- **Delete Measure:** Hover over a measure and click the small "×" in the top right corner. This button only appears if a line has more than one measure.
+
+## Editing Content
+
+- **Line Text:** Click in the empty area above a staff line to add annotations like "Intro", "Verse", or "Chorus". 
+  - Text alignment can be controlled:
+    - `<Verse`: Left-aligned
+    - `>Chorus`: Right-aligned
+    - `Intro`: Centered (Default)
+  - The following musical symbols are automatically recognized (case-insensitive):
+    - `$`: Becomes a Segno sign (𝄋).
+    - `Coda`: Becomes a Coda sign (𝄌).
+    - `D.S.`: Becomes a Dal Segno sign (𝄉).
+    - `D.C.`: Becomes a Da Capo sign (𝄊).
+
+- **Chords in Measure:** Click inside a measure to show the input fields for chords.
+  - Enter chord symbols (e.g., `C`, `Gm7`, `D/F#`).
+  - Use a slash `/` for a beat.
+  - Enter `%` in any field to display a measure repeat symbol.
+  - Leave a field empty for a rest on that beat.
+
+- **Endings (Volta Brackets):** Click the 'V' above a bar line to define a start or end point for a bracket. Enter the same label (e.g., `1.`) on the bar line **before** the first measure and **after** the last measure of the section. To remove a bracket, clear the input at both points.
+
+- **Bar Lines:** Click on a bar line to edit it. Enter one of the following symbols:
+  - `|` : Single bar line
+  - `||` : Double bar line
+  - `|<` : Start repeat
+  - `>|` or `}` : End repeat
+  - `|||` : Final bar line
+
+## Export & Print - PDF Optimized
+
+- **Print / PDF:** Creates a professionally formatted, print-optimized version with:
+  - Automatic, intelligent page breaks
+  - Consistent font sizes for best printing
+  - Optimized margins and spacing
+  - Page numbers for multi-page documents
+- **Export as PNG:** Saves the lead sheet as high-resolution image file(s). For multi-page documents, each page will be saved as a separate file.
