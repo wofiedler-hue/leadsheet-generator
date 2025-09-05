@@ -30,7 +30,7 @@ const state = {
     timeSignature: '4/4',
     lines: [
       {
-        lineText: '<Klicken zum Bearbeiten des Zeilentextes',
+        lineText: '<Line Text',
         startBar: 'single',
         startBarVolta: '',
         measures: [
