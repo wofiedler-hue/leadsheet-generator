@@ -21,11 +21,11 @@ const GOOGLE_FONTS = [
 // State Object - Single Source of Truth
 const state = {
   sheetData: {
-    title: 'Titel hier klicken',
+    title: 'Title',
     titleFont: { family: "'Times New Roman', Times, serif", size: 40 },
-    subtitle: 'Untertitel hier klicken',
+    subtitle: 'Composer',
     subtitleFont: { family: "'Times New Roman', Times, serif", size: 19 },
-    style: '(Stil hier klicken)',
+    style: 'Style',
     styleFont: { family: "'Times New Roman', Times, serif", size: 19 },
     timeSignature: '4/4',
     lines: [
