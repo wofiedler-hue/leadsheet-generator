@@ -1,0 +1,1275 @@
+/* Basic Reset & Global Styles */
+:root {
+  --background-color: #ffffff;
+  --text-color: #1c1e21;
+  --primary-color: #007bff;
+  --danger-color: #dc3545;
+  --border-color: #d1d5db;
+  --sheet-font: 'Times New Roman', Times, serif;
+  --chord-font: 'Oswald', sans-serif;
+  --ui-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --bar-line-width: 30px;
+
+  /* Colors for interactive areas */
+  --interactive-color-header: rgba(253, 253, 150, 0.25); /* Yellow */
+  --interactive-color-time: rgba(255, 204, 153, 0.25);   /* Orange */
+  --interactive-color-linetext: rgba(193, 225, 193, 0.25);/* Green */
+  --interactive-color-measure: rgba(255, 209, 220, 0.25);/* Pink */
+  --interactive-color-barline: rgba(195, 177, 225, 0.25);/* Purple */
+  --interactive-color-volta: rgba(255, 179, 71, 0.2);   /* Orange */
+
+  --interactive-color-header-hover: rgba(253, 253, 150, 0.45);
+  --interactive-color-time-hover: rgba(255, 204, 153, 0.45);
+  --interactive-color-linetext-hover: rgba(193, 225, 193, 0.45);
+  --interactive-color-measure-hover: rgba(255, 209, 220, 0.45);
+  --interactive-color-barline-hover: rgba(195, 177, 225, 0.45);
+  --interactive-color-volta-hover: rgba(255, 179, 71, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--ui-font);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.main-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Sheet Panel */
+.sheet-panel {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+}
+
+.sheet-music {
+  background-color: white;
+  padding: 0px;
+  width: 100%;
+  aspect-ratio: 210 / 297;
+  height: auto;
+  border: 0 solid var(--border-color);
+  font-family: var(--sheet-font);
+  margin-top: 0;
+}
+
+/* Header Editor Toolbar */
+.header-editor-toolbar {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  margin-top: 110px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  z-index: 200;
+  border: 1px solid var(--border-color);
+  transition: opacity 0.2s, visibility 0.2s;
+}
+
+.header-editor-toolbar.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toolbar-group label {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.toolbar-group select, .toolbar-group input {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  font-family: var(--ui-font);
+  font-size: 0.9rem;
+}
+
+.toolbar-group input[type="number"] {
+  width: 60px;
+}
+
+/* Header Styles */
+.sheet-header {
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid black;
+  padding-bottom: 0;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 20px;
+}
+
+.sheet-header h1, .sheet-header .title-input {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sheet-header h1, .style-info, .subtitle-info {
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.header-second-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  line-height: 1.2;
+}
+
+.style-info, .subtitle-info {
+  cursor: pointer;
+  width: 50%;
+}
+
+.subtitle-info {
+  text-align: right;
+}
+
+/* Edit Mode Styles for Header */
+.header-input {
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  padding: 0.25rem;
+}
+.header-input.title-input {
+    font-weight: bold;
+    text-align: center;
+}
+.header-input.subtitle-input {
+    text-align: right;
+}
+
+/* Sheet Body & Time Signature */
+.sheet-body {
+  position: relative;
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.time-signature {
+  position: absolute;
+  left: 0px;
+  top: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 38px 6px 6px 0;
+  border-radius: 4px;
+}
+
+.time-signature-input {
+    width: 60px;
+    font-size: 2rem;
+    text-align: center;
+    border: none;
+    background-color: #e9ecef;
+    font-family: var(--sheet-font);
+    font-weight: bold;
+}
+
+.measures-container {
+    padding-left: 20px;
+}
+
+/* Line Text Styles */
+.line-wrapper {
+  margin: 0;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 0.5rem; /* Increased spacing between lines */
+}
+
+.line-text-container {
+  padding: 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-bottom: 0; /* Spacing now handled by line-wrapper */
+}
+
+.line-text-display {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  width: 100%;
+  font-style: italic;
+  font-size: 1.5rem;
+  color: #000;
+  min-height: 1.5em;
+  white-space: pre-wrap; /* Preserve spaces for manual indentation */
+}
+.line-text-display:empty::before {
+    content: ' ';
+    white-space: pre;
+}
+
+.line-text-left-segment {
+  text-align: left;
+  padding-left: 15px;
+}
+.line-text-center-segment {
+  text-align: center;
+}
+.line-text-right-segment {
+  text-align: right;
+  padding-right: 15px;
+}
+
+.line-text-container:hover .line-text-display {
+    background-color: transparent; /* Parent container handles hover now */
+}
+
+.musical-symbol {
+  font-family: 'Noto Music', sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  vertical-align: middle;
+  margin: 0 0.2em;
+  /* ADDED: Prevents the symbol from affecting the line height to avoid layout jumps. */
+  display: inline-block;
+  line-height: 0;
+}
+
+.segno-symbol {
+  font-size: 1.5em;
+  position: relative;
+  top: -0.05em;
+}
+
+.coda-symbol {
+  font-size: 1.6em;
+  position: relative;
+  top: 0.1em;
+}
+
+.ds-symbol, .dc-symbol {
+  font-size: 1.6em; /* A bit larger to match Coda */
+  position: relative;
+  top: 0.1em;
+  font-weight: normal; /* The symbol has its own weight */
+}
+
+.line-text-input {
+  width: 100%;
+  border: none;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  font-family: var(--sheet-font);
+  font-style: italic;
+  font-size: 1.5rem;
+  padding: 0.25rem;
+}
+
+/* FIX: Prevents overlap between line text and volta editors */
+.line-text-container:has(.line-text-input) {
+    margin-bottom: 30px; /* Additional bottom margin when editing */
+    position: relative;    /* Establish stacking context */
+    z-index: 7;            /* Place above volta container (z-index: 6) */
+}
+
+/* Measure & Bar Lines Layout */
+.measure-line {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  position: relative;
+  justify-content: flex-start;
+  margin-bottom: 0; /* Spacing now handled by line-wrapper */
+}
+
+.measure {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: calc((100% - (5 * var(--bar-line-width))) / 4);
+  display: flex;
+  align-items: flex-end;
+  font-size: 2.5rem;
+  font-weight: normal;
+  position: relative;
+  min-height: 40px;
+  cursor: pointer;
+  padding: 5px;
+  font-family: var(--chord-font);
+  border-radius: 4px;
+}
+
+/* Bar Line Containers and Display */
+.bar-line-container {
+    flex-shrink: 0;
+    width: var(--bar-line-width);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    border-radius: 4px;
+}
+
+.bar-line-display {
+    height: 100%;
+    position: relative;
+}
+
+/* Visual Bar Lines - optimized for print */
+.bar-line-display::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+.bar-line-display.bar-single::after {
+  width: 0;
+  border-left: 2px solid black;
+}
+.bar-line-display.bar-double::after {
+  width: 6px;
+  border-left: 2px solid black;
+  border-right: 2px solid black;
+}
+.bar-line-display.bar-end::after, .bar-line-display.bar-final::after {
+  width: 8px;
+  border-left: 2px solid black;
+  border-right: 4px solid black;
+}
+.bar-line-display.bar-end::before {
+    content: ':';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8rem;
+    color: black;
+}
+.bar-line-display.bar-start-repeat::after {
+  width: 8px;
+  border-left: 4px solid black;
+  border-right: 2px solid black;
+}
+.start-repeat-dots {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8rem;
+    color: black;
+}
+
+/* Bar Line Editor */
+.bar-line-input {
+    width: 100%;
+    height: 80%;
+    text-align: center;
+    border: none;
+    background-color: #e9ecef;
+    font-family: monospace;
+    font-size: 1.2rem;
+}
+
+/* Rehearsal Marks */
+.rehearsal-mark-container {
+  position: absolute;
+  bottom: 100%;
+  margin-bottom: 5px;
+  left: 0;
+  display: flex;
+  justify-content: flex-start; /* Align to the start of the measure */
+  z-index: 5;
+}
+
+.rehearsal-mark {
+  display: inline-block;
+  padding: 0.2em 0.5em;
+  border: 2px solid black;
+  background-color: white;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rehearsal-mark-input {
+  border: none;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  text-align: center;
+  font-family: var(--sheet-font);
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--text-color);
+  padding: 0.25rem;
+  width: 100px;
+}
+
+/* Volta Brackets (Endings) */
+.volta-display-container {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  height: 25px;
+  pointer-events: none; /* Non-interactive display */
+  margin-bottom: 15px;
+  z-index: 6;
+}
+
+.volta-editor {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20; /* Increased to ensure it's on top of everything */
+    margin-bottom: 5px;
+}
+
+.volta-editor-trigger {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: var(--ui-font);
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.volta-editor-trigger:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+}
+
+.volta-editor-input {
+    width: 50px;
+    text-align: center;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    padding: 2px;
+    font-size: 0.9rem;
+    font-family: var(--sheet-font);
+    font-weight: bold;
+}
+
+.volta-display {
+    position: absolute;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.volta-line {
+    position: absolute;
+    top: 0;
+    height: 0;
+    border-top: 2px solid black;
+}
+
+.volta-line.starts-here {
+    left: -16px;
+}
+.volta-line.continues {
+    left: -16px; /* Overlap to prevent gaps */
+}
+
+.volta-line.ends-here {
+    right: -16px;
+}
+.volta-line.continues-past {
+    right: -16px; /* Overlap to prevent gaps */
+}
+
+.volta-hook {
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 20px;
+    border-left: 2px solid black;
+}
+
+.volta-start-hook {
+    left: -16px;
+}
+
+.volta-end-hook {
+    right: -16px;
+}
+
+.volta-text {
+    position: absolute;
+    top: 2px;
+    left: -8px;
+    font-family: var(--sheet-font);
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* Chord Display Styles */
+.beats-display {
+    display: flex;
+    width: 100%;
+    align-items: flex-end;
+}
+.beat-slot {
+    flex: 1;
+    min-height: 1.2em;
+    padding: 0 4px;
+    line-height: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+.beat-slash {
+    font-family: var(--chord-font); /* Use chord font as requested */
+    font-size: 1.75rem; /* Adjusted size for a standard slash character */
+    color: #000; /* Softer black for better aesthetics */
+    font-weight: 300; /* Lighter weight for a cleaner look */
+    position: relative;
+    top: 0em; /* Fine-tuned vertical alignment */
+    line-height: 1;
+}
+.chord-display {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: baseline;
+    line-height: 1;
+    font-family: var(--chord-font);
+}
+.chord-main { }
+.chord-root-slash {
+    vertical-align: super;
+    font-size: 0.6em;
+    line-height: 0;
+}
+.chord-bass {
+    vertical-align: sub;
+    font-size: 0.6em;
+    line-height: 0;
+    margin-left: 1px;
+    padding-top: 10px;
+}
+.chord-accidental {
+    font-family: 'Noto Music', sans-serif;
+    font-size: 0.8em;
+    font-weight: normal;
+    vertical-align: super;
+    margin-left: 1px;
+    line-height: 0;
+}
+.chord-accidental.is-flat {
+  font-size: 0.95em;
+  position: relative;
+  top: 0.05em;
+}
+.chord-extension {
+    font-size: 0.5em;
+    font-weight: normal;
+    vertical-align: top;
+    margin-left: 2px;
+}
+.chord-extension.is-slash-extension {
+    vertical-align: super;
+    font-size: 0.6em; /* Match the root size in slash chords */
+    line-height: 0;
+}
+
+/* Measure Repeat Symbol */
+.lazy-symbol-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 40px; /* Match measure min-height */
+}
+
+.lazy-symbol {
+  font-family: 'Noto Music', sans-serif;
+  font-size: 3.5rem;
+  line-height: 1;
+  font-weight: normal;
+  color: #000;
+}
+
+/* Measure Editor */
+.measure-editor {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    padding: 4px;
+    gap: 4px;
+}
+.beat-input {
+    flex: 1;
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    background-color: #e9ecef;
+    text-align: center;
+    font-family: var(--chord-font);
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: var(--text-color);
+    padding: 0.25rem;
+    min-width: 3em;
+}
+
+/* Focus Styles */
+.header-input:focus, .time-signature-input:focus, .beat-input:focus, .bar-line-input:focus, .rehearsal-mark-input:focus, .line-text-input:focus, .volta-editor-input:focus {
+  outline: 2px solid var(--primary-color);
+  background-color: #fff;
+  z-index: 10;
+}
+
+/* == Highlighting Interactive Areas == */
+.sheet-header h1, .style-info, .subtitle-info,
+.time-signature,
+.line-text-container,
+.measure,
+.bar-line-container {
+    transition: background-color 0.2s ease-in-out;
+}
+
+/* Header Parts */
+.sheet-header h1, .style-info, .subtitle-info {
+    background-color: var(--interactive-color-header);
+}
+.sheet-header h1:hover, .style-info:hover, .subtitle-info:hover {
+    background-color: var(--interactive-color-header-hover);
+}
+
+/* Time Signature */
+.time-signature {
+    background-color: var(--interactive-color-time);
+}
+.time-signature:hover {
+    background-color: var(--interactive-color-time-hover);
+}
+
+/* Line Text */
+.line-text-container {
+    background-color: var(--interactive-color-linetext);
+}
+.line-text-container:hover {
+    background-color: var(--interactive-color-linetext-hover);
+}
+
+/* Measures */
+.measure {
+    background-color: var(--interactive-color-measure);
+}
+.measure:hover {
+    background-color: var(--interactive-color-measure-hover);
+}
+
+/* Bar Lines */
+.bar-line-container {
+    background-color: var(--interactive-color-barline);
+}
+.bar-line-container:hover {
+    background-color: var(--interactive-color-barline-hover);
+}
+
+/* App Buttons */
+.app-button {
+  position: fixed;
+  bottom: 20px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  transition: all 0.2s;
+  z-index: 100;
+}
+.app-button:hover:not(:disabled) { background-color: #0069d9; }
+.app-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.export-button {
+  right: 20px;
+}
+
+.print-button {
+  right: 200px;
+}
+
+.save-txt-button {
+  right: 350px;
+}
+
+.load-txt-button {
+  right: 510px;
+}
+
+.help-button {
+    left: 150px;
+    padding: 0.75rem 1rem;
+    font-size: 1.2rem;
+}
+
+.add-line-button {
+  left: 20px;
+}
+
+.line-delete-btn {
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: 10px;
+  background: transparent;
+  border: none;
+  font-family: var(--ui-font);
+  font-size: 2rem;
+  font-weight: 300;
+  color: #000;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 5px;
+  transition: color 0.2s ease;
+}
+
+.line-delete-btn:hover {
+  color: var(--danger-color);
+}
+
+.measure-delete-btn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  font-family: var(--ui-font);
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: #aaa;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease, transform 0.2s ease;
+  z-index: 15;
+}
+
+.measure-delete-btn:hover {
+  color: var(--danger-color);
+  transform: scale(1.1);
+}
+
+.add-measure-btn {
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: calc((100% - (5 * var(--bar-line-width))) / 4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    cursor: pointer;
+    padding: 5px 5px 0 5px;
+    border: 2px dashed var(--border-color);
+    border-radius: 4px;
+    color: #c1c5cb;
+    font-size: 2.5rem;
+    background-color: transparent;
+    transition: all 0.2s ease;
+    margin-left: 5px;
+}
+.add-measure-btn:hover {
+    color: #555;
+    border-color: #555;
+    background-color: #f8f9fa;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 650px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    cursor: pointer;
+    color: #888;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.5rem;
+}
+
+.modal-content dl {
+    margin-top: 1rem;
+}
+
+.modal-content dt {
+    font-weight: bold;
+    margin-top: 1rem;
+}
+
+.modal-content dd {
+    margin-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.modal-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.modal-content code {
+    background-color: #eee;
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+/* Hide interactive UI elements for PNG export */
+body.is-exporting .measure-delete-btn,
+body.is-exporting .line-delete-btn,
+body.is-exporting .add-measure-btn,
+body.is-exporting .volta-editor {
+    display: none !important;
+}
+
+/* Hide interactive backgrounds for PNG export */
+body.is-exporting .sheet-header h1,
+body.is-exporting .style-info,
+body.is-exporting .subtitle-info,
+body.is-exporting .time-signature,
+body.is-exporting .line-text-container,
+body.is-exporting .measure,
+body.is-exporting .bar-line-container {
+    background-color: transparent !important;
+}
+
+/* Stretch measures to full width during PNG export */
+body.is-exporting .print-page .measure {
+    flex: 1 1 0 !important; /* ROBUST FIX: Ensure measures always grow to fill space. */
+    min-width: 0; /* Allow measures to shrink if their content is too wide. */
+}
+
+/* Ensure bar lines do not grow or shrink during export. */
+body.is-exporting .print-page .bar-line-container {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+/* Ensure beat slots inside a measure can also shrink and won't overflow. */
+body.is-exporting .print-page .beats-display .beat-slot {
+    min-width: 0;
+}
+
+/* Mirror crucial print layout and font styles to ensure PNG export is consistent. */
+body.is-exporting {
+  /* Match the bar line width used in print styles for correct flex calculations. */
+  --bar-line-width: 25px;
+}
+body.is-exporting .print-page .measures-container {
+  padding-left: 50px;
+}
+body.is-exporting .print-page .time-signature {
+  font-size: 18pt !important;
+}
+body.is-exporting .print-page .line-text-display {
+  font-size: 11pt !important;
+}
+
+/* FIX: Explicitly define all chord component styles for PNG export to ensure 
+   correct rendering, mirroring the base styles to work with the export font size. */
+body.is-exporting .print-page .chord-root-slash {
+    vertical-align: super;
+    font-size: 0.6em;
+    line-height: 0;
+}
+body.is-exporting .print-page .chord-bass {
+    vertical-align: sub;
+    font-size: 0.6em;
+    line-height: 0;
+    margin-left: 1px;
+    padding-top: 10px;
+}
+body.is-exporting .print-page .chord-accidental {
+    font-family: 'Noto Music', sans-serif;
+    font-size: 0.8em;
+    font-weight: normal;
+    vertical-align: super;
+    margin-left: 1px;
+    line-height: 0;
+}
+body.is-exporting .print-page .chord-accidental.is-flat {
+  font-size: 0.95em;
+  position: relative;
+  top: 0.05em;
+}
+body.is-exporting .print-page .chord-extension {
+    font-size: 0.5em;
+    font-weight: normal;
+    vertical-align: top;
+    margin-left: 2px;
+}
+body.is-exporting .print-page .chord-extension.is-slash-extension {
+    vertical-align: super;
+    font-size: 0.6em;
+    line-height: 0;
+}
+/* FIX: Ensure beat slashes use the correct font and have a consistent size for export. */
+body.is-exporting .print-page .beat-slash {
+    color: #333 !important;
+    font-size: 16pt !important;
+}
+
+body.is-exporting .print-page .measure {
+  min-height: 50px;
+}
+
+/* Print Logic Support */
+#print-container {
+  display: none;
+}
+
+body.is-printing > .app-container {
+  display: none;
+}
+
+body.is-printing #print-container {
+  display: block;
+}
+
+/* Optimized Print Styles */
+@media print {
+  body {
+    background-color: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+
+  @page {
+    size: A4;
+    margin: 0mm 5mm;
+  }
+  
+  /* Hide all interactive UI elements */
+  .app-button, .header-editor-toolbar, .page-break-controls, .measure-delete-btn, .line-delete-btn, .add-measure-btn, .volta-editor {
+    display: none !important;
+  }
+  
+  /* Hide interactive backgrounds for printing */
+  .print-page .sheet-header h1,
+  .print-page .style-info,
+  .print-page .subtitle-info,
+  .print-page .time-signature,
+  .print-page .measure,
+  .print-page .bar-line-container {
+      background-color: transparent !important;
+  }
+
+  .print-page {
+    width: 100%;
+    height: auto;
+    min-height: calc(297mm - 40mm);
+    page-break-after: always;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: white !important;
+    color: black !important;
+    font-family: 'Times New Roman', serif;
+  }
+
+  .print-page:last-child {
+    page-break-after: auto;
+  }
+  
+  .page-content-wrapper {
+    flex: 1;
+    position: relative;
+  }
+
+  .page-footer {
+    text-align: center;
+    font-size: 10pt;
+    padding: 1rem 0;
+    margin-top: auto;
+    border-top: 1px solid #ccc;
+    color: #666;
+  }
+
+  /* Print-specific typography */
+  .print-page .sheet-header {
+      background: transparent !important;
+      box-shadow: none !important;
+      border-bottom: 2px solid black !important;
+      padding: 0 0 1rem 0;
+      margin-bottom: 1.5rem;
+  }
+
+  .print-page .sheet-body {
+      background: transparent !important;
+      padding: 0;
+  }
+
+  .print-page .sheet-header h1 {
+    font-size: 24pt !important;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .print-page .header-second-line {
+    font-size: 12pt !important;
+  }
+
+  .print-page .time-signature {
+    font-size: 18pt !important;
+    color: black !important;
+  }
+
+  .print-page .line-text-display {
+    font-size: 11pt !important;
+    font-style: italic;
+    color: black !important;
+    padding-left: 10px;
+    margin-bottom: 0.3rem;
+  }
+
+  /* FINAL FIX: Ensures line text is *always* above the measure line. */
+  .print-page .line-text-container {
+    position: relative; /* Stacking context required for z-index */
+    z-index: 10;
+    /* An explicit background forces the print renderer to treat this as an opaque
+       layer, which solves stubborn z-index issues in print. */
+    background-color: white; 
+  }
+  
+  .print-page .measure-line {
+    /* Must also have a stacking context for the z-index comparison to work */
+    position: relative;
+    z-index: 1;
+  }
+
+  .print-page .chord-display {
+    font-size: 14pt !important;
+    color: black !important;
+  }
+
+  /* FIX: Ensure chord component styles are applied for print, matching PNG export. */
+  .print-page .chord-root-slash {
+      vertical-align: super;
+      font-size: 0.6em;
+      line-height: 0;
+  }
+  .print-page .chord-bass {
+      vertical-align: sub;
+      font-size: 0.6em;
+      line-height: 0;
+      margin-left: 1px;
+      padding-top: 10px;
+  }
+  .print-page .chord-accidental {
+      font-family: 'Noto Music', sans-serif;
+      font-size: 0.8em;
+      font-weight: normal;
+      vertical-align: super;
+      margin-left: 1px;
+      line-height: 0;
+  }
+  .print-page .chord-accidental.is-flat {
+    font-size: 0.95em;
+    position: relative;
+    top: 0.05em;
+  }
+  .print-page .chord-extension {
+      font-size: 0.5em;
+      font-weight: normal;
+      vertical-align: top;
+      margin-left: 2px;
+  }
+  .print-page .chord-extension.is-slash-extension {
+      vertical-align: super;
+      font-size: 0.6em;
+      line-height: 0;
+  }
+
+  .print-page .beat-slash {
+    color: #333 !important;
+    font-size: 16pt !important;
+  }
+
+  .print-page .rehearsal-mark {
+    background-color: transparent !important;
+    border: 2px solid black !important;
+    font-size: 10pt !important;
+    font-weight: bold;
+    padding: 0.2em 0.4em;
+  }
+
+  .print-page .volta-line,
+  .print-page .volta-hook {
+    border-color: black !important;
+  }
+
+  .print-page .volta-text {
+    color: black !important;
+    font-size: 10pt !important;
+    font-weight: bold !important;
+  }
+  
+  /* NEW & ROBUST: Ensures that under no circumstances are input fields
+     printed. This acts as a failsafe for the JavaScript logic. */
+  .print-page .header-input,
+  .print-page .time-signature-input,
+  .print-page .line-text-input,
+  .print-page .measure-editor,
+  .print-page .bar-line-input,
+  .print-page .rehearsal-mark-input,
+  .print-page .volta-editor-input {
+    display: none !important;
+  }
+
+  /* Prevent lines from breaking across pages */
+  .print-page .line-wrapper {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .print-page .measure-line {
+    margin-bottom: 0.8rem;
+  }
+
+  /* Remove hover effects */
+  .print-page .line-text-display:hover {
+      background-color: transparent !important;
+  }
+
+  /* Ensure bar lines print correctly */
+  .print-page .bar-line-display::after, 
+  .print-page .bar-line-display::before, 
+  .print-page .start-repeat-dots {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color: black !important;
+  }
+  
+  /* Force consistent font rendering */
+  .print-page * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Optimize spacing for print */
+  .print-page .measures-container {
+    padding-left: 50px;
+  }
+
+  .print-page .measure {
+    font-size: 16pt !important;
+    min-height: 50px;
+    flex: 1 1 0 !important; /* ROBUST FIX: Ensure measures always grow to fill space. */
+    min-width: 0; /* Allow shrinking to prevent content overflow */
+  }
+
+  /* Prevent wide chords/slashes from breaking the measure's flex layout */
+  .print-page .beats-display,
+  .print-page .beats-display .beat-slot {
+    min-width: 0;
+  }
+
+  .print-page .bar-line-container {
+    width: 25px;
+    flex-grow: 0;
+    flex-shrink: 0;
+  }
+}
+
+/* High contrast mode for better readability */
+@media print and (prefers-contrast: high) {
+  .print-page .beat-slash {
+    color: black !important;
+  }
+  
+  .print-page .bar-line-display::after,
+  .print-page .bar-line-display::before {
+    border-color: black !important;
+  }
+}
