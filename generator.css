@@ -948,6 +948,8 @@ body.is-exporting .print-page .measures-container {
 }
 body.is-exporting .print-page .time-signature {
   font-size: 18pt !important;
+top: -10px;
+left: 30px;
 }
 body.is-exporting .print-page .line-text-display {
   font-size: 11pt !important;

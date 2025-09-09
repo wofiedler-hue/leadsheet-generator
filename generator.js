@@ -43,6 +43,7 @@ const state = {
   },
   editing: null,
   isExporting: false,
+  isDirty: false,
 };
 
 // DOM Element References
@@ -65,6 +66,10 @@ const dom = {
 };
 
 // --- HELPERS ---
+const markAsDirty = () => {
+    state.isDirty = true;
+};
+
 const getBeatsPerMeasure = () => {
     const [beats] = String(state.sheetData.timeSignature).split('/').map(s => parseInt(s, 10));
     return !isNaN(beats) && beats > 0 ? beats : 4;
@@ -720,6 +725,7 @@ const handleAddMeasure = (lineIndex) => {
 
     line.measures.push(newMeasure);
     
+    markAsDirty();
     state.editing = null;
     renderSheet();
 };
@@ -756,6 +762,7 @@ const handleSheetClick = (e) => {
                     line.measures[line.measures.length - 1].barLine = isLastLineOfSheet ? 'final' : 'single';
                 }
                 
+                markAsDirty();
                 state.editing = null;
                 renderSheet();
             }
@@ -768,6 +775,7 @@ const handleSheetClick = (e) => {
         const lineIndex = parseInt(deleteBtn.dataset.lineIndex, 10);
         if (!isNaN(lineIndex) && state.sheetData.lines.length > 1) {
             state.sheetData.lines.splice(lineIndex, 1);
+            markAsDirty();
             state.editing = null;
             renderSheet();
         }
@@ -832,6 +840,8 @@ const handleGlobalClick = (e) => {
 const handleInputChange = (e) => {
     const target = e.target;
     if (!state.editing) return;
+
+    markAsDirty();
 
     switch(state.editing.type) {
         case 'header':
@@ -913,6 +923,8 @@ const handleInputChange = (e) => {
 
 const handleToolbarChange = () => {
     if (state.editing?.type !== 'header') return;
+    
+    markAsDirty();
 
     const part = state.editing.part;
     const fontData = state.sheetData[`${part}Font`];
@@ -956,6 +968,7 @@ const handleAddNewLine = () => {
         ],
     };
     state.sheetData.lines.push(newLine);
+    markAsDirty();
     renderSheet();
 };
 
@@ -1419,6 +1432,7 @@ const handleLoadFile = (e) => {
         try {
             const newSheetData = parseSheetDataFromTXT(event.target.result);
             state.sheetData = newSheetData;
+            state.isDirty = false;
             state.editing = null;
             renderSheet();
         } catch (error) {
@@ -1466,6 +1480,15 @@ const init = () => {
     dom.saveTxtButton.addEventListener('click', handleSaveTXT);
     dom.loadTxtButton.addEventListener('click', () => dom.loadTxtInput.click());
     dom.loadTxtInput.addEventListener('change', handleLoadFile);
+    
+    window.addEventListener('beforeunload', (e) => {
+        if (state.isDirty) {
+            // Standard way to trigger the browser's confirmation dialog.
+            e.preventDefault();
+            // Required for some browsers.
+            e.returnValue = '';
+        }
+    });
     
     renderSheet();
 };
