@@ -17,6 +17,23 @@ const GOOGLE_FONTS = [
     { name: 'Caveat', family: "'Caveat', cursive" },
 ];
 
+const SHARP_SCALE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const FLAT_SCALE = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const NOTE_VALUES = {
+    'C': 0, 'B#': 0,
+    'C#': 1, 'Db': 1,
+    'D': 2,
+    'D#': 3, 'Eb': 3,
+    'E': 4, 'Fb': 4,
+    'F': 5, 'E#': 5,
+    'F#': 6, 'Gb': 6,
+    'G': 7,
+    'G#': 8, 'Ab': 8,
+    'A': 9,
+    'A#': 10, 'Bb': 10,
+    'B': 11, 'Cb': 11,
+};
+
 // State Object - Single Source of Truth
 const state = {
   sheetData: {
@@ -63,6 +80,8 @@ const dom = {
   saveTxtButton: document.getElementById('save-txt-btn'),
   loadTxtButton: document.getElementById('load-txt-btn'),
   loadTxtInput: document.getElementById('load-txt-input'),
+  transposeUpButton: document.getElementById('transpose-up-btn'),
+  transposeDownButton: document.getElementById('transpose-down-btn'),
 };
 
 // --- HELPERS ---
@@ -135,6 +154,67 @@ const parseTextForSymbols = (textToParse) => {
     }
 
     return fragment;
+};
+
+// --- TRANSPOSITION LOGIC ---
+
+/**
+ * Transposes a single note string by a given number of semitones.
+ * @param {string} noteStr The note to transpose (e.g., 'C', 'F#', 'Bb').
+ * @param {number} semitones The number of semitones to transpose by.
+ * @returns {string} The transposed note string.
+ */
+const transposeNote = (noteStr, semitones) => {
+    const match = noteStr.match(/^([A-G])([#b]?)/);
+    if (!match) return noteStr; // Not a valid note format
+
+    const [, noteName, accidental] = match;
+    const originalNote = noteName + (accidental || '');
+
+    if (NOTE_VALUES[originalNote] === undefined) return noteStr;
+
+    const value = NOTE_VALUES[originalNote];
+    const newIndex = (value + semitones % 12 + 12) % 12;
+    
+    // Use sharps for upward transposition, flats for downward
+    if (semitones > 0) {
+        return SHARP_SCALE[newIndex];
+    } else if (semitones < 0) {
+        return FLAT_SCALE[newIndex];
+    } else {
+        return originalNote;
+    }
+};
+
+/**
+ * Transposes a full chord string (e.g., 'Cmaj7', 'G/B').
+ * @param {string} chord The chord string to transpose.
+ * @param {number} semitones The number of semitones.
+ * @returns {string} The transposed chord string.
+ */
+const transposeChord = (chord, semitones) => {
+    const trimmedChord = chord ? chord.trim() : '';
+    if (!trimmedChord || ['/', '%', 'N.C.'].includes(trimmedChord)) {
+        return chord;
+    }
+
+    const [mainChordStr, bassNoteStr] = chord.split('/');
+    
+    // Regex to capture root note (C, F#, Bb) and the rest of the chord quality (maj7, m7b5, etc.)
+    const mainNoteMatch = mainChordStr.match(/^([A-G][#b]?)(.*)/);
+    if (!mainNoteMatch) return chord; // Cannot parse root note
+
+    const [, rootNote, quality] = mainNoteMatch;
+
+    const newRoot = transposeNote(rootNote, semitones);
+    let newChord = newRoot + quality;
+
+    if (bassNoteStr) {
+        const newBass = transposeNote(bassNoteStr, semitones);
+        newChord += '/' + newBass;
+    }
+
+    return newChord;
 };
 
 
@@ -305,6 +385,14 @@ const renderSheet = () => {
     data.lines.forEach((lineData, lineIndex) => {
         const lineWrapper = document.createElement('div');
         lineWrapper.className = 'line-wrapper';
+
+        // A line is considered empty (for spacing purposes) only if it has NO text AND NO voltas.
+        const isLineTextEmpty = !lineData.lineText || !lineData.lineText.trim();
+        const hasVolta = lineData.startBarVolta || lineData.measures.some(m => m.barLineVolta);
+
+        if (isLineTextEmpty && !hasVolta) {
+            lineWrapper.classList.add('no-line-text');
+        }
 
         // --- Render Line Text ---
         const isEditingLineText = state.editing?.type === 'lineText' && state.editing.lineIndex === lineIndex;
@@ -700,6 +788,16 @@ const closeHelpModal = () => {
 
 // --- EVENT HANDLERS ---
 
+const handleTranspose = (semitones) => {
+    state.sheetData.lines.forEach(line => {
+        line.measures.forEach(measure => {
+            measure.beats = measure.beats.map(beat => transposeChord(beat, semitones));
+        });
+    });
+    markAsDirty();
+    renderSheet();
+};
+
 const handleAddMeasure = (lineIndex) => {
     const line = state.sheetData.lines[lineIndex];
     if (!line || line.measures.length >= 4) return;
@@ -995,55 +1093,101 @@ const cloneAndCleanForPrint = (element) => {
     return clone;
 };
 
-// Improved pagination for better PDF output
+// --- [REVISED] Robust pagination for perfect PDF/PNG output ---
 const createPaginatedPages = () => {
     const A4_HEIGHT_MM = 297;
-    const A4_HEIGHT_PX = Math.round(A4_HEIGHT_MM * 3.779528); // 96dpi conversion
+    const A4_WIDTH_MM = 210;
+    const DPI = 96;
+    const A4_HEIGHT_PX = Math.round(A4_HEIGHT_MM / 25.4 * DPI);
     const MARGIN_MM = 20;
-    const MARGIN_PX = Math.round(MARGIN_MM * 3.779528);
+    const MARGIN_PX = Math.round(MARGIN_MM / 25.4 * DPI);
     const FOOTER_HEIGHT_PX = 60;
     const MAX_CONTENT_HEIGHT = A4_HEIGHT_PX - (2 * MARGIN_PX) - FOOTER_HEIGHT_PX;
 
     const originalSheet = dom.sheetMusicContainer;
     const header = originalSheet.querySelector('.sheet-header');
     const sheetBody = originalSheet.querySelector('.sheet-body');
+    const measuresContainer = originalSheet.querySelector('.measures-container');
     const lineElements = Array.from(originalSheet.querySelectorAll('.line-wrapper'));
 
-    if (!header || !sheetBody) return [];
+    if (!header || !sheetBody || !measuresContainer) return [];
+
+    // --- Height Measurement with Print Styles ---
+    // 1. Create an off-screen "ruler" container that mimics a print page.
+    const ruler = document.createElement('div');
+    ruler.className = 'print-page';
+    ruler.style.position = 'absolute';
+    ruler.style.left = '-9999px';
+    ruler.style.top = '0';
+    ruler.style.width = `${A4_WIDTH_MM}mm`; // Crucial for flexbox calculations
+    ruler.style.visibility = 'hidden';
+    
+    // 2. Clone the content to be measured into the ruler.
+    const measuresContainerClone = cloneAndCleanForPrint(measuresContainer);
+    ruler.appendChild(measuresContainerClone);
+    document.body.appendChild(ruler);
+
+    // 3. Get all line wrappers from the clone and calculate their heights.
+    //    `getComputedStyle` will now correctly apply the `.print-page` styles.
+    const lineClones = Array.from(ruler.querySelectorAll('.line-wrapper'));
+    const lineHeights = lineClones.map(lineClone => {
+        const style = window.getComputedStyle(lineClone);
+        const marginTop = parseFloat(style.marginTop) || 0;
+        const marginBottom = parseFloat(style.marginBottom) || 0;
+        return lineClone.offsetHeight + marginTop + marginBottom;
+    });
+
+    // 4. Clean up the ruler from the DOM.
+    document.body.removeChild(ruler);
 
     const pagesContent = [];
     let currentPageLines = [];
     let currentHeight = 0;
 
-    // First page includes header
+    // First page includes header's height. Measure it accurately as well.
     let headerHeight = 0;
     if (header) {
-        headerHeight = header.offsetHeight + 40; // Add margin
+        const headerRuler = document.createElement('div');
+        headerRuler.className = 'print-page';
+        headerRuler.style.position = 'absolute';
+        headerRuler.style.left = '-9999px';
+        headerRuler.style.width = `${A4_WIDTH_MM}mm`;
+        
+        const headerClone = cloneAndCleanForPrint(header);
+        headerRuler.appendChild(headerClone);
+        document.body.appendChild(headerRuler);
+        
+        const headerStyle = window.getComputedStyle(headerClone);
+        headerHeight = headerClone.offsetHeight 
+                     + (parseFloat(headerStyle.marginTop) || 0) 
+                     + (parseFloat(headerStyle.marginBottom) || 0);
+
+        document.body.removeChild(headerRuler);
         currentHeight = headerHeight;
     }
 
+    // Now, paginate using the pre-calculated, correct heights.
     for (let i = 0; i < lineElements.length; i++) {
-        const lineElement = lineElements[i];
-        const lineHeight = lineElement.offsetHeight + 20; // Add margin
+        const lineHeight = lineHeights[i];
+        if (!lineHeight) continue; // Skip if height is zero
 
-        // Check if adding this line would exceed page height
+        // If adding this line would exceed page height, finalize the current page.
         if (currentHeight + lineHeight > MAX_CONTENT_HEIGHT && currentPageLines.length > 0) {
             pagesContent.push(currentPageLines);
             currentPageLines = [];
-            currentHeight = lineHeight; // Start new page with this line
-        } else {
-            currentHeight += lineHeight;
+            currentHeight = 0; // Height for a new page starts at 0.
         }
-
-        currentPageLines.push(lineElement);
+        
+        currentHeight += lineHeight;
+        currentPageLines.push(lineElements[i]);
     }
 
-    // Add the last page if any lines are left
+    // Add the last page if any lines are left.
     if (currentPageLines.length > 0) {
         pagesContent.push(currentPageLines);
     }
 
-    // Construct the actual page DOM elements
+    // Construct the actual page DOM elements.
     return pagesContent.map((pageLines, pageIndex) => {
         const pageDiv = document.createElement('div');
         pageDiv.className = 'print-page';
@@ -1052,7 +1196,6 @@ const createPaginatedPages = () => {
         pageContentWrapper.className = 'page-content-wrapper';
 
         if (pageIndex === 0) {
-            // First page gets the header
             pageContentWrapper.appendChild(cloneAndCleanForPrint(header));
             const bodyClone = cloneAndCleanForPrint(sheetBody);
             const measuresContainer = bodyClone.querySelector('.measures-container');
@@ -1062,7 +1205,6 @@ const createPaginatedPages = () => {
             }
             pageContentWrapper.appendChild(bodyClone);
         } else {
-            // Subsequent pages just get measures
             const bodyDiv = document.createElement('div');
             bodyDiv.className = 'sheet-body';
             
@@ -1480,6 +1622,9 @@ const init = () => {
     dom.saveTxtButton.addEventListener('click', handleSaveTXT);
     dom.loadTxtButton.addEventListener('click', () => dom.loadTxtInput.click());
     dom.loadTxtInput.addEventListener('change', handleLoadFile);
+
+    dom.transposeUpButton.addEventListener('click', () => handleTranspose(1));
+    dom.transposeDownButton.addEventListener('click', () => handleTranspose(-1));
     
     window.addEventListener('beforeunload', (e) => {
         if (state.isDirty) {

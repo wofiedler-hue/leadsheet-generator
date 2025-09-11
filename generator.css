@@ -46,6 +46,7 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
+  padding-bottom: 100px; /* Space for the floating action bar */
 }
 
 .main-content {
@@ -711,51 +712,81 @@ body {
     background-color: var(--interactive-color-barline-hover);
 }
 
-/* App Buttons */
+/* Floating Action Bar */
+.floating-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    gap: 0.75rem;
+    z-index: 999; /* Below modals */
+}
+
+.action-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.separator {
+    width: 1px;
+    height: 24px;
+    background-color: #d1d5db;
+}
+
+/* App Buttons (Refactored for Action Bar) */
 .app-button {
-  position: fixed;
-  bottom: 20px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #fff;
   background-color: var(--primary-color);
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   transition: all 0.2s;
-  z-index: 100;
+  white-space: nowrap;
 }
 .app-button:hover:not(:disabled) { background-color: #0069d9; }
 .app-button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.export-button {
-  right: 20px;
+.transpose-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+    margin-right: 0.25rem;
 }
 
-.print-button {
-  right: 200px;
-}
-
-.save-txt-button {
-  right: 350px;
-}
-
-.load-txt-button {
-  right: 510px;
+.transpose-button {
+    padding: 0;
+    font-size: 1.5rem;
+    line-height: 1;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .help-button {
-    left: 150px;
-    padding: 0.75rem 1rem;
+    padding: 0;
     font-size: 1.2rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.add-line-button {
-  left: 20px;
-}
-
+/* Line & Measure Controls */
 .line-delete-btn {
   flex-shrink: 0;
   align-self: center;
@@ -948,11 +979,23 @@ body.is-exporting .print-page .measures-container {
 }
 body.is-exporting .print-page .time-signature {
   font-size: 18pt !important;
-top: -10px;
-left: 30px;
+  top: -10px;
+  left: 40px; /* NEW: Adjust position to be closer to the first measure. */
 }
 body.is-exporting .print-page .line-text-display {
   font-size: 11pt !important;
+}
+/* ADDED: Ensure consistent line spacing for export and reduce it when no line text is present. */
+body.is-exporting .print-page .line-wrapper {
+  margin-bottom: 1rem;
+}
+body.is-exporting .print-page .line-wrapper + .line-wrapper.no-line-text {
+  margin-top: -0.5rem;
+}
+
+/* ADDED: Match print styles for consistent spacing between measure lines. */
+body.is-exporting .print-page .measure-line {
+  margin-bottom: 0.8rem;
 }
 
 /* FIX: Explicitly define all chord component styles for PNG export to ensure 
@@ -1003,6 +1046,13 @@ body.is-exporting .print-page .measure {
   min-height: 50px;
 }
 
+/* ADDED: Lower Volta brackets on export to center them between lines. */
+body.is-exporting .print-page .volta-display-container {
+  /* The default margin-bottom (15px) pushes the bracket too high, close to the line text above.
+     Reducing it moves the bracket down, placing it more centrally in the space between lines. */
+  margin-bottom: 5px;
+}
+
 /* Print Logic Support */
 #print-container {
   display: none;
@@ -1031,7 +1081,7 @@ body.is-printing #print-container {
   }
   
   /* Hide all interactive UI elements */
-  .app-button, .header-editor-toolbar, .page-break-controls, .measure-delete-btn, .line-delete-btn, .add-measure-btn, .volta-editor {
+  .app-button, .header-editor-toolbar, .page-break-controls, .measure-delete-btn, .line-delete-btn, .add-measure-btn, .volta-editor, .floating-action-bar {
     display: none !important;
   }
   
@@ -1195,6 +1245,13 @@ body.is-printing #print-container {
     font-size: 10pt !important;
     font-weight: bold !important;
   }
+
+  /* ADDED: Lower Volta brackets on print to center them between lines. */
+  .print-page .volta-display-container {
+    /* The default margin-bottom (15px) pushes the bracket too high, close to the line text above.
+       Reducing it moves the bracket down, placing it more centrally in the space between lines. */
+    margin-bottom: 5px;
+  }
   
   /* NEW & ROBUST: Ensures that under no circumstances are input fields
      printed. This acts as a failsafe for the JavaScript logic. */
@@ -1213,6 +1270,11 @@ body.is-printing #print-container {
     break-inside: avoid;
     page-break-inside: avoid;
     margin-bottom: 1rem;
+  }
+
+  /* ADDED: Reduce spacing above lines that do not have any line text to save space. */
+  .print-page .line-wrapper + .line-wrapper.no-line-text {
+    margin-top: -0.5rem;
   }
 
   .print-page .measure-line {
