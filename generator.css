@@ -761,19 +761,22 @@ body {
 .transpose-label {
     font-size: 0.9rem;
     font-weight: 600;
-    color: #333;
+    color: #000;
     margin-right: 0.25rem;
 }
 
 .transpose-button {
-    padding: 0;
-    font-size: 1.5rem;
+    padding: 0 0 15px 0;
+    font-size: 2rem;
     line-height: 1;
     width: 40px;
     height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
+    color: #fff;
+    font-family: 'Noto Music', sans-serif;
+    font-weight: normal;
 }
 
 .help-button {
