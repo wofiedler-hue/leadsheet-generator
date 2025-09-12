@@ -33,6 +33,7 @@ const NOTE_VALUES = {
     'A#': 10, 'Bb': 10,
     'B': 11, 'Cb': 11,
 };
+const STORAGE_KEY = 'leadSheetGeneratorData';
 
 // State Object - Single Source of Truth
 const state = {
@@ -61,6 +62,7 @@ const state = {
   editing: null,
   isExporting: false,
   isDirty: false,
+  saveTimeout: null,
 };
 
 // DOM Element References
@@ -87,8 +89,21 @@ const dom = {
 const BASE_DOCUMENT_TITLE = document.title;
 
 // --- HELPERS ---
-const markAsDirty = () => {
+const markAsDirtyAndSave = () => {
     state.isDirty = true;
+
+    // Debounce saving to localStorage to avoid excessive writes
+    if (state.saveTimeout) {
+        clearTimeout(state.saveTimeout);
+    }
+    state.saveTimeout = setTimeout(() => {
+        try {
+            const stateToSave = JSON.stringify(state.sheetData);
+            localStorage.setItem(STORAGE_KEY, stateToSave);
+        } catch (error) {
+            console.error("Could not save state to localStorage", error);
+        }
+    }, 500);
 };
 
 const updateDocumentTitle = () => {
@@ -805,7 +820,7 @@ const handleTranspose = (semitones) => {
             measure.beats = measure.beats.map(beat => transposeChord(beat, semitones));
         });
     });
-    markAsDirty();
+    markAsDirtyAndSave();
     renderSheet();
 };
 
@@ -834,7 +849,7 @@ const handleAddMeasure = (lineIndex) => {
 
     line.measures.push(newMeasure);
     
-    markAsDirty();
+    markAsDirtyAndSave();
     state.editing = null;
     renderSheet();
 };
@@ -871,7 +886,7 @@ const handleSheetClick = (e) => {
                     line.measures[line.measures.length - 1].barLine = isLastLineOfSheet ? 'final' : 'single';
                 }
                 
-                markAsDirty();
+                markAsDirtyAndSave();
                 state.editing = null;
                 renderSheet();
             }
@@ -884,7 +899,7 @@ const handleSheetClick = (e) => {
         const lineIndex = parseInt(deleteBtn.dataset.lineIndex, 10);
         if (!isNaN(lineIndex) && state.sheetData.lines.length > 1) {
             state.sheetData.lines.splice(lineIndex, 1);
-            markAsDirty();
+            markAsDirtyAndSave();
             state.editing = null;
             renderSheet();
         }
@@ -950,7 +965,7 @@ const handleInputChange = (e) => {
     const target = e.target;
     if (!state.editing) return;
 
-    markAsDirty();
+    markAsDirtyAndSave();
 
     switch(state.editing.type) {
         case 'header':
@@ -1036,7 +1051,7 @@ const handleInputChange = (e) => {
 const handleToolbarChange = () => {
     if (state.editing?.type !== 'header') return;
     
-    markAsDirty();
+    markAsDirtyAndSave();
 
     const part = state.editing.part;
     const fontData = state.sheetData[`${part}Font`];
@@ -1080,7 +1095,7 @@ const handleAddNewLine = () => {
         ],
     };
     state.sheetData.lines.push(newLine);
-    markAsDirty();
+    markAsDirtyAndSave();
     renderSheet();
 };
 
@@ -1598,7 +1613,16 @@ const handleLoadFile = (e) => {
         try {
             const newSheetData = parseSheetDataFromTXT(event.target.result);
             state.sheetData = newSheetData;
-            state.isDirty = false;
+            
+            // Overwrite localStorage with the new file content and cancel pending saves
+            if (state.saveTimeout) clearTimeout(state.saveTimeout);
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state.sheetData));
+            } catch (error) {
+                console.error("Could not save new state to localStorage after file load", error);
+            }
+
+            state.isDirty = false; // Freshly loaded from file, so it's clean
             state.editing = null;
             renderSheet();
             updateDocumentTitle();
@@ -1619,6 +1643,25 @@ const handleLoadFile = (e) => {
 
 // --- INITIALIZATION ---
 const init = () => {
+    // Load state from localStorage on startup
+    const loadStateFromLocalStorage = () => {
+        try {
+            const savedState = localStorage.getItem(STORAGE_KEY);
+            if (savedState) {
+                const parsedData = JSON.parse(savedState);
+                if (parsedData && parsedData.lines && Array.isArray(parsedData.lines)) {
+                    state.sheetData = parsedData;
+                    state.isDirty = true; // Loaded work is unsaved to a file, so it's "dirty"
+                }
+            }
+        } catch (error) {
+            console.error("Could not load state from localStorage", error);
+            // If there's an error, it's safer to just start fresh.
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    };
+    loadStateFromLocalStorage();
+    
     // Populate font selector
     GOOGLE_FONTS.forEach(font => {
         const option = document.createElement('option');
