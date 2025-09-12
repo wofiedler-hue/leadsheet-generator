@@ -84,9 +84,20 @@ const dom = {
   transposeDownButton: document.getElementById('transpose-down-btn'),
 };
 
+const BASE_DOCUMENT_TITLE = document.title;
+
 // --- HELPERS ---
 const markAsDirty = () => {
     state.isDirty = true;
+};
+
+const updateDocumentTitle = () => {
+    const sheetTitle = state.sheetData.title?.trim();
+    if (sheetTitle) {
+        document.title = sheetTitle;
+    } else {
+        document.title = BASE_DOCUMENT_TITLE;
+    }
 };
 
 const getBeatsPerMeasure = () => {
@@ -944,6 +955,9 @@ const handleInputChange = (e) => {
     switch(state.editing.type) {
         case 'header':
             state.sheetData[state.editing.part] = target.value;
+            if (state.editing.part === 'title') {
+                updateDocumentTitle();
+            }
             break;
         case 'timeSignature':
             const oldBeats = getBeatsPerMeasure();
@@ -1330,30 +1344,40 @@ const handlePrint = () => {
     document.body.appendChild(printContainer);
     document.body.classList.add('is-printing');
 
-    const originalTitle = document.title;
-    const sheetTitle = state.sheetData.title;
-    // Only change the title if it's meaningful
-    if (sheetTitle && sheetTitle.trim() && sheetTitle !== 'Click to edit title') {
-        document.title = sheetTitle.trim();
-    }
+    let hasCleanedUp = false;
+    const cleanupAfterPrint = () => {
+        if (hasCleanedUp) return;
+        hasCleanedUp = true;
+        
+        if (document.body.contains(printContainer)) {
+            document.body.removeChild(printContainer);
+        }
+        document.body.classList.remove('is-printing');
+        if (previousEditingState) {
+            state.editing = previousEditingState;
+            renderSheet();
+        }
+    };
+    
+    // Set up the cleanup listener to fire only once after printing is done.
+    window.addEventListener('afterprint', cleanupAfterPrint, { once: true });
 
-    // Ensure fonts are loaded before printing
-    setTimeout(() => {
+    // Explicitly update the document title to the current song title just before printing
+    // to ensure the PDF filename is correct.
+    updateDocumentTitle();
+
+    requestAnimationFrame(() => {
         try {
             window.print();
-        } finally {
-            setTimeout(() => {
-                document.body.removeChild(printContainer);
-                document.body.classList.remove('is-printing');
-                document.title = originalTitle; // Restore the original title
-                if (previousEditingState) {
-                    state.editing = previousEditingState;
-                    renderSheet();
-                }
-            }, 100);
+        } catch (error) {
+            console.error('Error during print:', error);
+            // If window.print() fails, the 'afterprint' event might not fire,
+            // so we must clean up manually.
+            cleanupAfterPrint();
         }
-    }, 200);
+    });
 };
+
 
 // --- TXT Import / Export ---
 const generateSheetTXT = () => {
@@ -1577,6 +1601,7 @@ const handleLoadFile = (e) => {
             state.isDirty = false;
             state.editing = null;
             renderSheet();
+            updateDocumentTitle();
         } catch (error) {
             console.error("Failed to parse TXT file:", error);
             alert(`Error loading file: ${error.message}\nPlease ensure it's a valid lead sheet TXT file.`);
@@ -1636,6 +1661,7 @@ const init = () => {
     });
     
     renderSheet();
+    updateDocumentTitle();
 };
 
 document.addEventListener('DOMContentLoaded', init);
