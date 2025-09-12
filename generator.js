@@ -35,9 +35,7 @@ const NOTE_VALUES = {
 };
 const STORAGE_KEY = 'leadSheetGeneratorData';
 
-// State Object - Single Source of Truth
-const state = {
-  sheetData: {
+const initialSheetData = {
     title: 'Title',
     titleFont: { family: "'Times New Roman', Times, serif", size: 40 },
     subtitle: 'Composer',
@@ -47,7 +45,7 @@ const state = {
     timeSignature: '4/4',
     lines: [
       {
-        lineText: '<Verse',
+        lineText: '',
         startBar: 'single',
         startBarVolta: '',
         measures: [
@@ -58,7 +56,11 @@ const state = {
         ],
       }
     ]
-  },
+};
+
+// State Object - Single Source of Truth
+const state = {
+  sheetData: JSON.parse(JSON.stringify(initialSheetData)), // Deep copy to start
   editing: null,
   isExporting: false,
   isDirty: false,
@@ -84,6 +86,7 @@ const dom = {
   loadTxtInput: document.getElementById('load-txt-input'),
   transposeUpButton: document.getElementById('transpose-up-btn'),
   transposeDownButton: document.getElementById('transpose-down-btn'),
+  newSongButton: document.getElementById('new-song-btn'),
 };
 
 const BASE_DOCUMENT_TITLE = document.title;
@@ -108,7 +111,7 @@ const markAsDirtyAndSave = () => {
 
 const updateDocumentTitle = () => {
     const sheetTitle = state.sheetData.title?.trim();
-    if (sheetTitle) {
+    if (sheetTitle && sheetTitle.toLowerCase() !== 'title') {
         document.title = sheetTitle;
     } else {
         document.title = BASE_DOCUMENT_TITLE;
@@ -1393,6 +1396,21 @@ const handlePrint = () => {
     });
 };
 
+const handleNewSong = () => {
+    if (confirm('Are you sure you want to start a new song? All unsaved changes will be lost.')) {
+        if (state.saveTimeout) {
+            clearTimeout(state.saveTimeout);
+            state.saveTimeout = null;
+        }
+        state.sheetData = JSON.parse(JSON.stringify(initialSheetData));
+        localStorage.removeItem(STORAGE_KEY);
+        state.isDirty = false;
+        state.editing = null;
+        renderSheet();
+        updateDocumentTitle();
+    }
+};
+
 
 // --- TXT Import / Export ---
 const generateSheetTXT = () => {
@@ -1693,6 +1711,7 @@ const init = () => {
 
     dom.transposeUpButton.addEventListener('click', () => handleTranspose(1));
     dom.transposeDownButton.addEventListener('click', () => handleTranspose(-1));
+    dom.newSongButton.addEventListener('click', handleNewSong);
     
     window.addEventListener('beforeunload', (e) => {
         if (state.isDirty) {
