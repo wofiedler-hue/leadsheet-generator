@@ -62,6 +62,7 @@ const initialSheetData = {
 const state = {
   sheetData: JSON.parse(JSON.stringify(initialSheetData)), // Deep copy to start
   editing: null,
+  activeInputTarget: null,
   isExporting: false,
   isDirty: false,
   saveTimeout: null,
@@ -87,9 +88,119 @@ const dom = {
   transposeUpButton: document.getElementById('transpose-up-btn'),
   transposeDownButton: document.getElementById('transpose-down-btn'),
   newSongButton: document.getElementById('new-song-btn'),
+  chordContextMenu: document.getElementById('chord-context-menu'),
 };
 
 const BASE_DOCUMENT_TITLE = document.title;
+
+// --- Context Menu Handlers ---
+const hideChordContextMenu = () => {
+    if (dom.chordContextMenu) {
+        dom.chordContextMenu.classList.add('hidden');
+    }
+};
+
+const showChordContextMenu = (targetElement, lineIndex, measureIndex) => {
+    if (!dom.chordContextMenu || !targetElement) return;
+
+    const menu = dom.chordContextMenu;
+    menu.dataset.lineIndex = lineIndex;
+    menu.dataset.measureIndex = measureIndex;
+
+    const targetRect = targetElement.getBoundingClientRect();
+    const containerRect = dom.appContainer.getBoundingClientRect();
+
+    // Position below the target element by default
+    let top = targetRect.bottom + window.scrollY + 5;
+    let left = targetRect.left + window.scrollX;
+
+    menu.classList.remove('hidden'); // Make it visible to measure its dimensions
+
+    const menuRect = menu.getBoundingClientRect();
+
+    // Prevent overflow on the right
+    if (left + menuRect.width > containerRect.right) {
+        left = containerRect.right - menuRect.width - 5;
+    }
+    // Prevent overflow on the left
+    if (left < containerRect.left) {
+        left = containerRect.left + 5;
+    }
+    // If it overflows on the bottom, position it above the target element
+    if (top + menuRect.height > window.innerHeight + window.scrollY) {
+        top = targetRect.top + window.scrollY - menuRect.height - 5;
+    }
+
+    menu.style.top = `${top}px`;
+    menu.style.left = `${left}px`;
+};
+
+const handleContextMenuClick = (e) => {
+    const button = e.target.closest('button');
+    if (!button) return;
+
+    const { lineIndex, measureIndex } = dom.chordContextMenu.dataset;
+    if (lineIndex === undefined || measureIndex === undefined) return;
+    
+    const lineIdx = parseInt(lineIndex, 10);
+    const measureIdx = parseInt(measureIndex, 10);
+
+    const { value, barValue, action } = button.dataset;
+
+    if (barValue) {
+        if (measureIdx === -1) { // -1 indicates the start bar
+            state.sheetData.lines[lineIdx].startBar = barValue;
+        } else {
+            state.sheetData.lines[lineIdx].measures[measureIdx].barLine = barValue;
+        }
+        markAsDirtyAndSave();
+        renderSheet();
+    } else if (value) {
+        const activeInput = state.activeInputTarget;
+        if (activeInput && (activeInput.classList.contains('beat-input') || activeInput.classList.contains('bar-line-input'))) {
+            const start = activeInput.selectionStart;
+            const end = activeInput.selectionEnd;
+            const text = activeInput.value;
+            activeInput.value = text.slice(0, start) + value + text.slice(end);
+            activeInput.focus();
+            activeInput.selectionStart = activeInput.selectionEnd = start + value.length;
+            
+            // Manually trigger an input event to update state
+            const inputEvent = new Event('input', { bubbles: true });
+            activeInput.dispatchEvent(inputEvent);
+        }
+    } else if (action === 'backspace') {
+        const activeInput = state.activeInputTarget;
+        if (activeInput && (activeInput.classList.contains('beat-input') || activeInput.classList.contains('bar-line-input'))) {
+            const start = activeInput.selectionStart;
+            const end = activeInput.selectionEnd;
+            const text = activeInput.value;
+            let newText;
+            let newCursorPos;
+
+            if (start === end && start > 0) {
+                // No selection, delete character before cursor
+                newText = text.slice(0, start - 1) + text.slice(start);
+                newCursorPos = start - 1;
+            } else if (start < end) {
+                // Selection exists, delete it
+                newText = text.slice(0, start) + text.slice(end);
+                newCursorPos = start;
+            } else {
+                // Nothing to delete (cursor at start or no text)
+                return;
+            }
+
+            activeInput.value = newText;
+            activeInput.focus();
+            activeInput.selectionStart = activeInput.selectionEnd = newCursorPos;
+
+            const inputEvent = new Event('input', { bubbles: true });
+            activeInput.dispatchEvent(inputEvent);
+        }
+    }
+};
+
 
 // --- HELPERS ---
 const markAsDirtyAndSave = () => {
@@ -280,14 +391,14 @@ const createChordElement = (chord) => {
         if (accidental) {
             const accidentalSpan = document.createElement('span');
             accidentalSpan.className = 'chord-accidental';
-            let musicalSymbol = accidental;
+            let symbol = accidental;
             if (accidental === '#') {
-                musicalSymbol = '♯';
+                symbol = '♯'; // U+266F
             } else if (accidental === 'b') {
-                musicalSymbol = '♭';
+                symbol = '♭'; // U+266D
                 accidentalSpan.classList.add('is-flat');
             }
-            accidentalSpan.textContent = musicalSymbol;
+            accidentalSpan.textContent = symbol;
             mainSpan.appendChild(accidentalSpan);
         }
         if (extension) {
@@ -304,6 +415,7 @@ const createChordElement = (chord) => {
 
     if (bassNote) {
         const slashSeparator = document.createElement('span');
+        slashSeparator.className = 'chord-slash-separator';
         slashSeparator.textContent = '/';
         chordDisplay.appendChild(slashSeparator);
 
@@ -514,6 +626,7 @@ const renderSheet = () => {
             barInput.type = 'text';
             barInput.className = 'bar-line-input';
             barInput.value = SYMBOL_LOOKUP[lineData.startBar] || '|';
+            barInput.inputMode = 'none';
             startBarContainer.appendChild(barInput);
         } else {
             const barLineEl = document.createElement('div');
@@ -658,6 +771,7 @@ const renderSheet = () => {
                     input.className = 'beat-input';
                     input.value = beat;
                     input.dataset.beatIndex = String(i);
+                    input.inputMode = 'none';
                     editorEl.appendChild(input);
                 }
                 measureEl.appendChild(editorEl);
@@ -701,6 +815,7 @@ const renderSheet = () => {
                barInput.type = 'text';
                barInput.className = 'bar-line-input';
                barInput.value = SYMBOL_LOOKUP[measure.barLine] || '|';
+               barInput.inputMode = 'none';
                barLineContainer.appendChild(barInput);
             } else {
                const barLineEl = document.createElement('div');
@@ -762,11 +877,11 @@ const renderSheet = () => {
 
     if (state.editing) {
         let selector;
-        const { type, lineIndex, measureIndex } = state.editing;
+        const { type, lineIndex, measureIndex, part } = state.editing;
 
         switch (type) {
             case 'header':
-                selector = `.sheet-header [data-part="${state.editing.part}"].header-input`;
+                selector = `.sheet-header [data-part="${part}"].header-input`;
                 break;
             case 'timeSignature':
                 selector = '.time-signature-input';
@@ -794,6 +909,23 @@ const renderSheet = () => {
                 break;
         }
 
+        // Show/hide context menu based on editing type
+        if (type === 'measure' || type === 'barLine' || type === 'startBar') {
+            let menuTargetElement = null;
+            if (type === 'measure') {
+                menuTargetElement = dom.sheetMusicContainer.querySelector(`.measure[data-line-index="${lineIndex}"][data-measure-index="${measureIndex}"]`);
+                if (menuTargetElement) showChordContextMenu(menuTargetElement, lineIndex, measureIndex);
+            } else if (type === 'barLine') {
+                menuTargetElement = dom.sheetMusicContainer.querySelector(`.bar-line-container[data-line-index="${lineIndex}"][data-measure-index="${measureIndex}"]`);
+                if (menuTargetElement) showChordContextMenu(menuTargetElement, lineIndex, measureIndex);
+            } else if (type === 'startBar') {
+                menuTargetElement = dom.sheetMusicContainer.querySelector(`.bar-line-container[data-line-index="${lineIndex}"][data-type="startBar"]`);
+                if (menuTargetElement) showChordContextMenu(menuTargetElement, lineIndex, -1);
+            }
+        } else {
+             hideChordContextMenu();
+        }
+
         if (selector) {
             const activeInput = dom.sheetMusicContainer.querySelector(selector);
             if (activeInput) {
@@ -803,6 +935,13 @@ const renderSheet = () => {
                 }
             }
         }
+    } else {
+        // If not editing anything, ensure menu is hidden
+        hideChordContextMenu();
+    }
+
+    if (!state.editing || (state.editing.type !== 'measure' && state.editing.type !== 'barLine' && state.editing.type !== 'startBar')) {
+        state.activeInputTarget = null;
     }
 };
 
@@ -816,6 +955,11 @@ const closeHelpModal = () => {
 };
 
 // --- EVENT HANDLERS ---
+const handleFocusIn = (e) => {
+    if (e.target.classList.contains('beat-input') || e.target.classList.contains('bar-line-input')) {
+        state.activeInputTarget = e.target;
+    }
+};
 
 const handleTranspose = (semitones) => {
     state.sheetData.lines.forEach(line => {
@@ -955,8 +1099,9 @@ const handleSheetClick = (e) => {
 const handleGlobalClick = (e) => {
     const isClickInsideSheet = dom.sheetMusicContainer.contains(e.target);
     const isClickInsideToolbar = dom.headerToolbar.contains(e.target);
+    const isClickInsideContextMenu = dom.chordContextMenu && dom.chordContextMenu.contains(e.target);
 
-    if (!isClickInsideSheet && !isClickInsideToolbar) {
+    if (!isClickInsideSheet && !isClickInsideToolbar && !isClickInsideContextMenu) {
         if (state.editing) {
             state.editing = null;
             renderSheet();
@@ -1691,6 +1836,7 @@ const init = () => {
     
     dom.sheetMusicContainer.addEventListener('mousedown', handleSheetClick);
     dom.sheetMusicContainer.addEventListener('input', handleInputChange);
+    dom.sheetMusicContainer.addEventListener('focusin', handleFocusIn);
     document.body.addEventListener('click', handleGlobalClick);
     dom.exportButton.addEventListener('click', handleExportPNG);
     dom.printPdfButton.addEventListener('click', handlePrint);
@@ -1712,6 +1858,7 @@ const init = () => {
     dom.transposeUpButton.addEventListener('click', () => handleTranspose(1));
     dom.transposeDownButton.addEventListener('click', () => handleTranspose(-1));
     dom.newSongButton.addEventListener('click', handleNewSong);
+    dom.chordContextMenu.addEventListener('click', handleContextMenuClick);
     
     window.addEventListener('beforeunload', (e) => {
         if (state.isDirty) {

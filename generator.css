@@ -26,6 +26,10 @@
   --interactive-color-volta-hover: rgba(255, 179, 71, 0.4);
 }
 
+html {
+  /* This rule is removed to ensure robust viewport height calculation. */
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -37,6 +41,22 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   line-height: 1.6;
+  margin: 0;
+  /* DEFINITIVE FIX: Use a robust full-page flexbox layout with viewport height. */
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Use viewport height to ensure correct space distribution. */
+  overflow: hidden; /* The body itself should not scroll. */
+}
+
+/*
+  This wrapper is now a flexible container that grows to fill available space
+  and provides the main scrollable area for the application content.
+*/
+.page-content {
+  flex: 1 1 auto; /* Allow grow and shrink, take up main space */
+  overflow-y: auto; /* Enable vertical scrolling ONLY for this container */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* App Layout */
@@ -44,9 +64,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100vh;
   padding: 2rem;
-  padding-bottom: 100px; /* Space for the floating action bar */
 }
 
 .main-content {
@@ -121,7 +139,7 @@ body {
 
 /* Header Styles */
 .sheet-header {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   border-bottom: 2px solid black;
   padding-bottom: 0;
   padding-left: 0px;
@@ -502,7 +520,7 @@ body {
 
 .volta-line {
     position: absolute;
-    top: 0;
+    top: 10px;
     height: 0;
     border-top: 2px solid black;
 }
@@ -523,7 +541,7 @@ body {
 
 .volta-hook {
     position: absolute;
-    top: 0;
+    top: 10px;
     width: 0;
     height: 20px;
     border-left: 2px solid black;
@@ -539,7 +557,7 @@ body {
 
 .volta-text {
     position: absolute;
-    top: 2px;
+    top: 12px;
     left: -8px;
     font-family: var(--sheet-font);
     font-size: 1.1rem;
@@ -560,14 +578,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: flex-end;
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+}
+.beat-slot:hover {
+    background-color: rgba(0, 0, 0, 0.06);
 }
 .beat-slash {
-    font-family: var(--chord-font); /* Use chord font as requested */
-    font-size: 1.75rem; /* Adjusted size for a standard slash character */
-    color: #000; /* Softer black for better aesthetics */
-    font-weight: 300; /* Lighter weight for a cleaner look */
+    font-family: var(--chord-font);
+    font-size: 1.75rem;
+    color: #000;
     position: relative;
-    top: 0em; /* Fine-tuned vertical alignment */
+    top: 0em;
     line-height: 1;
 }
 .chord-display {
@@ -576,6 +598,12 @@ body {
     align-items: baseline;
     line-height: 1;
     font-family: var(--chord-font);
+}
+.chord-slash-separator {
+    font-weight: 200; /* Use lightest available weight */
+    display: inline-block; /* Required for transform */
+    transform: scaleX(0.7);
+    margin: 0 -1px; /* Compensate for horizontal scaling */
 }
 .chord-main { }
 .chord-root-slash {
@@ -712,21 +740,20 @@ body {
     background-color: var(--interactive-color-barline-hover);
 }
 
-/* Floating Action Bar */
-.floating-action-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+/* Top Action Bar */
+.top-action-bar {
+    /* Part of the main flexbox layout */
+    flex-shrink: 0; /* Prevent the bar from shrinking */
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 0.75rem 1rem;
     background-color: #f8f9fa;
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     gap: 0.75rem;
-    z-index: 999; /* Below modals */
+    z-index: 999; /* Still useful for stacking context */
 }
 
 .action-group {
@@ -936,6 +963,77 @@ body {
     font-family: monospace;
 }
 
+/* Chord Context Menu */
+.chord-context-menu {
+    position: absolute;
+    /* Position it off-screen by default to prevent any flash-of-content on load */
+    top: -9999px;
+    left: -9999px;
+    background-color: #f8f9fa;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 0.75rem;
+    z-index: 1100; /* Above floating action bar */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: auto;
+}
+
+.chord-context-menu.hidden {
+    display: none;
+}
+
+.context-menu-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.chord-context-menu button {
+    font-family: var(--ui-font);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.5rem;
+    min-width: 36px;
+    height: 36px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chord-context-menu button:hover {
+    background-color: #e9ecef;
+    border-color: #aaa;
+}
+
+.chord-context-menu button:active {
+    background-color: #d1d5db;
+}
+
+.chord-context-menu .backspace-btn {
+    font-weight: bold;
+    color: var(--danger-color);
+}
+
+.chord-context-menu .backspace-btn:hover {
+    background-color: #ffebee; /* Light red */
+    border-color: var(--danger-color);
+}
+
+.chord-context-menu .noto-music-font {
+    font-family: 'Noto Music', sans-serif;
+    font-size: 1.6rem;
+    font-weight: normal;
+}
+
+
 /* Hide interactive UI elements for PNG export */
 body.is-exporting .measure-delete-btn,
 body.is-exporting .line-delete-btn,
@@ -1061,6 +1159,8 @@ body.is-exporting .print-page .volta-display-container {
   display: none;
 }
 
+body.is-printing > .page-content,
+body.is-printing > .top-action-bar,
 body.is-printing > .app-container {
   display: none;
 }
@@ -1076,6 +1176,14 @@ body.is-printing #print-container {
     color: #000 !important;
     font-size: 12pt;
     line-height: 1.4;
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important; /* Override flexbox for printing */
+  }
+
+  .page-content {
+      height: auto !important;
+      overflow: visible !important;
   }
 
   @page {
@@ -1084,7 +1192,7 @@ body.is-printing #print-container {
   }
   
   /* Hide all interactive UI elements */
-  .app-button, .header-editor-toolbar, .page-break-controls, .measure-delete-btn, .line-delete-btn, .add-measure-btn, .volta-editor, .floating-action-bar {
+  .app-button, .header-editor-toolbar, .page-break-controls, .measure-delete-btn, .line-delete-btn, .add-measure-btn, .volta-editor, .top-action-bar, .chord-context-menu {
     display: none !important;
   }
   
